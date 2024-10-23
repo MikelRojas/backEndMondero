@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from my_sql import sign_in_verification_nodo, verification_client_PWA, get_client_balance,recargar_monedero
+from my_sql import insertar_promocion, sign_in_verification_nodo, verification_client_PWA, get_client_balance,recargar_monedero, register_nodo
 from postgres import get_products, set_products, set_ventas
 from flask_cors import CORS
 from threading import Timer
@@ -43,7 +43,26 @@ def login():
     else:
         return jsonify({"id": 0}), 401  # Retorna 0 si el usuario no existe o las credenciales son incorrectas
 
+@app.route('/insertar_promocion', methods=['POST'])
+def insertar_promocion_route():
+    try:
+        data = request.get_json()
 
+        # Obtener los valores del JSON enviado por el cliente
+        descripcion = data.get('descripcion')
+        porcentaje_descuento = data.get('porcentaje_descuento')
+        nodo_id = data.get('nodo_id')  # Este campo es opcional, puede ser None
+        fecha_fin = data.get('fecha_fin')  # Formato esperado: "YYYY-MM-DD HH:MM:SS"
+
+        if not descripcion or not porcentaje_descuento or not fecha_fin:
+            return jsonify({"success": False, "message": "Faltan campos obligatorios"}), 400
+
+        # Llamar a la función que inserta la promoción en la base de datos
+        resultado = insertar_promocion(descripcion, porcentaje_descuento, nodo_id, fecha_fin)
+        return resultado
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 def eliminar_verificacion(cliente_id):
@@ -59,6 +78,19 @@ def verificar_nodo():
     
     # Llamar a la función de verificación
     return sign_in_verification_nodo(nombre, password)
+
+@app.route('/registrar_nodo', methods=['POST'])
+def registrar_nodo():
+    data = request.get_json()
+    nombre_nodo = data.get('nombreNodo')
+    password = data.get('password')
+
+    exito = register_nodo(nombre_nodo, password)
+
+    if exito:
+        return jsonify({"message": "Nodo registrado exitosamente"}), 201
+    else:
+        return jsonify({"message": "Error al registrar el nodo"}), 400
 
 @app.route('/recargar_cliente', methods=['GET'])
 def recargar_cliente():

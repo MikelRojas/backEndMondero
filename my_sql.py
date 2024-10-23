@@ -1,4 +1,5 @@
 import mysql.connector
+from datetime import datetime
 from flask import jsonify
 
 def sign_in_verification_nodo(name, password):
@@ -112,3 +113,60 @@ def recargar_monedero(cliente_id, monto):
 
     except mysql.connector.Error as err:
         return jsonify({"success": False, "message": str(err)})
+    
+def register_nodo(nombre_nodo, password):
+    try:
+        conexion = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="marr5604",
+            database="server_central"
+        )
+        
+        cursor = conexion.cursor()
+        cursor.execute(f"INSERT INTO nodos (nombre_nodo_local, password) VALUES ('{nombre_nodo}', '{password}')")
+        cursor.close()
+        conexion.close()
+        return True
+    except mysql.connector.Error as err:
+        return False
+
+def insertar_promocion(descripcion, porcentaje_descuento, nodo_id, fecha_fin):
+    try:
+        # Conectar a la base de datos MySQL
+        conexion = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="marr5604",
+            database="server_central"
+        )
+        
+        cursor = conexion.cursor()
+
+        # Fecha actual para la fecha de inicio
+        fecha_inicio = datetime.now()
+
+        # Consulta para insertar la promoción
+        query = """
+        INSERT INTO promociones (descripcion, porcentaje_descuento, nodo_id, fecha_inicio, fecha_fin)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        
+        # Si el nodo_id es None, establece NULL
+        if nodo_id is None:
+            cursor.execute(query, (descripcion, porcentaje_descuento, None, fecha_inicio, fecha_fin))
+        else:
+            cursor.execute(query, (descripcion, porcentaje_descuento, nodo_id, fecha_inicio, fecha_fin))
+        
+        # Confirmar la transacción
+        conexion.commit()
+
+        # Cerrar cursor y conexión
+        cursor.close()
+        conexion.close()
+
+        return jsonify({"success": True, "message": "Promoción insertada con éxito"})
+
+    except mysql.connector.Error as err:
+        return jsonify({"success": False, "message": str(err)})
+
