@@ -1,8 +1,22 @@
 from flask import jsonify
 import psycopg2
 
-#Resive credenciales de la db local t devuelve una lista de tuplas con la informacion de los productos
 def get_products(host,dbname,user,password,port):
+    """Obtiene la lista de productos de la base de datos.
+
+    Args:
+        host (str): Dirección del servidor de la base de datos.
+        dbname (str): Nombre de la base de datos.
+        user (str): Nombre de usuario para acceder a la base de datos.
+        password (str): Contraseña del usuario.
+        port (int): Puerto de conexión a la base de datos.
+
+    Returns:
+        list: Lista de tuplas con la información de los productos.
+
+    Raises:
+        Exception: Si ocurre un error al conectar o ejecutar la consulta.
+    """
     try:
         conn = psycopg2.connect(
             host=host,
@@ -26,6 +40,24 @@ def get_products(host,dbname,user,password,port):
             print("Conexión cerrada.")
 
 def set_products(host, dbname, user, password, port, name, price, stock):
+    """Inserta un nuevo producto en la base de datos.
+
+    Args:
+        host (str): Dirección del servidor de la base de datos.
+        dbname (str): Nombre de la base de datos.
+        user (str): Nombre de usuario para acceder a la base de datos.
+        password (str): Contraseña del usuario.
+        port (int): Puerto de conexión a la base de datos.
+        name (str): Nombre del producto.
+        price (float): Precio del producto.
+        stock (int): Cantidad disponible del producto.
+
+    Returns:
+        str: Mensaje de éxito o error.
+
+    Raises:
+        Exception: Si ocurre un error al conectar o ejecutar la inserción.
+    """
     try:
         conn = psycopg2.connect(
             host=host,
@@ -53,6 +85,26 @@ def set_products(host, dbname, user, password, port, name, price, stock):
             print("Conexión cerrada.")
 
 def set_ventas(host, dbname, user, password, port, id_client, total, pay, nodo, products):
+    """Registra una nueva venta en la base de datos.
+
+    Args:
+        host (str): Dirección del servidor de la base de datos.
+        dbname (str): Nombre de la base de datos.
+        user (str): Nombre de usuario para acceder a la base de datos.
+        password (str): Contraseña del usuario.
+        port (int): Puerto de conexión a la base de datos.
+        id_client (int): ID del cliente que realiza la compra.
+        total (float): Monto total de la venta.
+        pay (float): Monto pagado por el cliente.
+        nodo (str): Nodo donde se registra la venta.
+        products (list): Lista de productos involucrados en la venta.
+
+    Returns:
+        str: Mensaje de éxito o error.
+
+    Raises:
+        Exception: Si ocurre un error al conectar o ejecutar las inserciones.
+    """
     try:
         conn = psycopg2.connect(
             host=host,

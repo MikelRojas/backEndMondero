@@ -3,11 +3,20 @@ from datetime import datetime
 from flask import jsonify
 
 def sign_in_verification_nodo(name, password):
+    """Verifica las credenciales de un nodo.
+
+    Args:
+        name (str): Nombre del nodo a verificar.
+        password (str): Contraseña del nodo.
+
+    Returns:
+        jsonify: Un JSON que contiene el ID del nodo si es válido, de lo contrario, retorna {"id": 0}.
+    """
     conexion = mysql.connector.connect(
-        host="localhost",         # Cambia esto si tu MySQL está en otro servidor
-        user="root",              # Tu nombre de usuario de MySQL
-        password="marr5604",      # Tu contraseña de MySQL
-        database="server_central" # El nombre de la base de datos a la que quieres acceder
+        host="localhost",         
+        user="root",              
+        password="marr5604",     
+        database="server_central" 
     )
     
     cursor = conexion.cursor()
@@ -17,15 +26,23 @@ def sign_in_verification_nodo(name, password):
     conexion.close()
     
     if len(resultados) == 0:
-        return jsonify({"id": 0})  # No se encontró el nodo
-    return jsonify({"id": resultados[0][0]})  # Retorna el id del nodo encontrado
+        return jsonify({"id": 0})  
+    return jsonify({"id": resultados[0][0]})  
 
 def verification_client(id):
+    """Verifica la existencia de un cliente por su ID.
+
+    Args:
+        id (int): ID del cliente a verificar.
+
+    Returns:
+        jsonify: Un JSON que contiene el ID del cliente si es válido, de lo contrario, retorna {"id": 0}.
+    """
     conexion = mysql.connector.connect(
-        host="localhost",         # Cambia esto si tu MySQL está en otro servidor
-        user="root",              # Tu nombre de usuario de MySQL
-        password="marr5604",      # Tu contraseña de MySQL
-        database="server_central" # El nombre de la base de datos a la que quieres acceder
+        host="localhost",         
+        user="root",              
+        password="marr5604",    
+        database="server_central" 
     )
     
     cursor = conexion.cursor()
@@ -36,19 +53,29 @@ def verification_client(id):
     
     if len(resultados) == 0:
         return jsonify({"id": 0}) 
-    return jsonify({"id": resultados[0][0]})  # Retorna el id del nodo encontrado
+    return jsonify({"id": resultados[0][0]})  
 
 
 def verification_client_PWA(name, email, phone, password):
+    """Verifica las credenciales de un cliente a través de la PWA.
+
+    Args:
+        name (str): Nombre del cliente.
+        email (str): Correo electrónico del cliente.
+        phone (str): Número de teléfono del cliente.
+        password (str): Contraseña del cliente.
+
+    Returns:
+        jsonify: Un JSON que contiene el ID del cliente si es válido, de lo contrario, retorna {"id": 0}.
+    """
     conexion = mysql.connector.connect(
-        host="localhost",  # Cambia esto si tu MySQL está en otro servidor
-        user="root",  # Tu nombre de usuario de MySQL
-        password="marr5604",  # Tu contraseña de MySQL
-        database="server_central"  # El nombre de la base de datos a la que quieres acceder
+        host="localhost", 
+        user="root", 
+        password="marr5604", 
+        database="server_central"  
     )
 
     cursor = conexion.cursor()
-    # Consulta para verificar si existe un cliente con el nombre, correo y teléfono
     query = "SELECT id FROM clientes WHERE nombre = %s AND correo = %s AND telefono = %s AND contrasena = %s"
     cursor.execute(query, (name, email, phone,password))
 
@@ -56,17 +83,20 @@ def verification_client_PWA(name, email, phone, password):
     cursor.close()
     conexion.close()
 
-    # Si no se encuentran resultados, se retorna un id = 0
     if len(resultados) == 0:
-        return jsonify({"id": 0})  # No se encontró el cliente
+        return jsonify({"id": 0})  
 
-    # Si se encontró el cliente, se retorna el id del cliente
     return jsonify({"id": resultados[0][0]})
 
-# Aquí puedes definir la función para obtener el saldo del cliente
 def get_client_balance(client_id):
-    # Aquí iría la lógica para obtener el saldo del cliente desde la base de datos
-    # Ejemplo:
+    """Obtiene el saldo de un cliente.
+
+    Args:
+        client_id (int): ID del cliente cuyo saldo se desea obtener.
+
+    Returns:
+        float: El saldo del cliente, o 0 si no se encuentra el saldo.
+    """
     conexion = mysql.connector.connect(
         host="localhost",
         user="root",
@@ -75,7 +105,6 @@ def get_client_balance(client_id):
     )
     cursor = conexion.cursor()
 
-    # Consulta para obtener el saldo del cliente
     query = "SELECT saldo FROM monedero_electronico WHERE cliente_id = %s"
     cursor.execute(query, (client_id,))
     resultado = cursor.fetchone()
@@ -84,13 +113,21 @@ def get_client_balance(client_id):
     conexion.close()
 
     if resultado:
-        return resultado[0]  # Retorna el saldo
-    return 0  # Si no se encuentra el saldo, retorna 0
+        return resultado[0]  
+    return 0  
 
 
 def recargar_monedero(cliente_id, monto):
+    """Recarga el monedero de un cliente.
+
+    Args:
+        cliente_id (int): ID del cliente a recargar.
+        monto (float): Monto a recargar.
+
+    Returns:
+        jsonify: Un JSON que indica si la recarga fue exitosa o si ocurrió un error.
+    """
     try:
-        # Conectar a la base de datos MySQL
         conexion = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -100,10 +137,8 @@ def recargar_monedero(cliente_id, monto):
         
         cursor = conexion.cursor()
 
-        # Llamar al procedimiento almacenado 'recargar_monedero'
         cursor.callproc('recargar_monedero', [cliente_id, float(monto)])
 
-        # Confirmar la transacción
         conexion.commit()
 
         cursor.close()
@@ -115,6 +150,15 @@ def recargar_monedero(cliente_id, monto):
         return jsonify({"success": False, "message": str(err)})
     
 def register_nodo(nombre_nodo, password):
+    """Registra un nuevo nodo en la base de datos.
+
+    Args:
+        nombre_nodo (str): Nombre del nodo a registrar.
+        password (str): Contraseña del nodo.
+
+    Returns:
+        bool: True si el registro fue exitoso, False en caso contrario.
+    """
     try:
         conexion = mysql.connector.connect(
             host="localhost",
@@ -132,8 +176,18 @@ def register_nodo(nombre_nodo, password):
         return False
 
 def insertar_promocion(descripcion, porcentaje_descuento, nodo_id, fecha_fin):
+    """Inserta una nueva promoción en la base de datos.
+
+    Args:
+        descripcion (str): Descripción de la promoción.
+        porcentaje_descuento (float): Porcentaje de descuento de la promoción.
+        nodo_id (int): ID del nodo asociado (puede ser None).
+        fecha_fin (str): Fecha de finalización de la promoción.
+
+    Returns:
+        jsonify: Un JSON que indica si la inserción fue exitosa o si ocurrió un error.
+    """
     try:
-        # Conectar a la base de datos MySQL
         conexion = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -143,25 +197,20 @@ def insertar_promocion(descripcion, porcentaje_descuento, nodo_id, fecha_fin):
         
         cursor = conexion.cursor()
 
-        # Fecha actual para la fecha de inicio
         fecha_inicio = datetime.now()
 
-        # Consulta para insertar la promoción
         query = """
         INSERT INTO promociones (descripcion, porcentaje_descuento, nodo_id, fecha_inicio, fecha_fin)
         VALUES (%s, %s, %s, %s, %s)
         """
         
-        # Si el nodo_id es None, establece NULL
         if nodo_id is None:
             cursor.execute(query, (descripcion, porcentaje_descuento, None, fecha_inicio, fecha_fin))
         else:
             cursor.execute(query, (descripcion, porcentaje_descuento, nodo_id, fecha_inicio, fecha_fin))
         
-        # Confirmar la transacción
         conexion.commit()
 
-        # Cerrar cursor y conexión
         cursor.close()
         conexion.close()
 
